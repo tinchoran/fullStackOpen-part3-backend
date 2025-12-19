@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 
-const persons = [
+let persons = [
     { 
       "id": 1,
       "name": "Arto Hellas", 
@@ -26,10 +26,78 @@ const persons = [
 
 app.use(express.json());
 
+app.get("/info", (req, res) => {
+    const date = new Date();
+    const long = persons.length;
+    return res.send(
+        `<div>
+            <p>Phonebook has info for ${long} people</p>
+            <p>${date.toString()}</p>
+        </div>`
+    )
+})
+
+
 app.get("/api/persons", (req, res) => {
     return res.json(persons);
 })
 
+
+app.get("/api/persons/:id", (req, res) => {
+    const id = Number(req.params.id);
+    const person = persons.find(person => person.id === id);
+
+    if(person){
+        return res.json(person)
+    }
+
+    res.statusMessage = "Recurso no encontrado"
+    return res.status(404).json({
+        error: "Not found"
+    })
+
+})
+
+app.delete("/api/persons/:id", (req, res)  => {
+    const id = Number(req.params.id);
+    persons = persons.filter(person => person.id !== id);
+    return res.status(204).end();
+})
+
+const generateId = () => {
+    const id = Math.floor(Math.random() * 10000);
+    return id;
+}
+
+app.post("/api/persons", (req, res) => {
+    const body = req.body;
+
+    if(!body.name || !body.number){
+        return res.status(400).json({
+            error: 'Nombre o número no especificado/s'
+        })
+    }
+
+    const newPerson = {
+        name: body.name,
+        number: body.number,
+        id: generateId(),
+    }
+
+    const nameAlreadyExists = persons.some(person => person.name.toLowerCase() === newPerson.name.toLowerCase())
+    
+    if(nameAlreadyExists){
+        return res.status(400).json({
+            error: 'El nombre ya está en uso'
+        })
+    }
+
+
+    persons = persons.concat(newPerson);
+
+    return res.status(201).json(newPerson);
+
+})
 
 const PORT = 3001;
 

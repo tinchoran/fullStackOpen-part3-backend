@@ -28,6 +28,7 @@ let persons = [
 ]
 
 app.use(express.json());
+app.use(express.static("dist"));
 
 morgan.token('body', (req, res) => req.method === "POST" ? JSON.stringify(req.body) : " ")
 //app.use(morgan("tiny")); //Ejercicio 3.7
